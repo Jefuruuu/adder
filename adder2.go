@@ -6,6 +6,14 @@ import (
 	"strings"
 )
 
+type Outcome int
+
+const (
+	Same Outcome = iota
+	Larger
+	Less
+)
+
 type Number struct {
 	Sign string
 	Value []int
@@ -13,21 +21,19 @@ type Number struct {
 
 func Add(val1 []int, val2 []int) string {
 	temp := 0
-	res := ""
+	res := make([]string, len(val1) + 1)
 	for i := len(val1)-1; i >= 0; i -- {
 		digit := val1[i] + val2[i] + temp
-		if digit > 9 {
-			temp = 1
-			res = strconv.Itoa(digit - 10) + res
-		} else {
-			temp = 0
-			res = strconv.Itoa(digit) + res
-		}
+		temp = digit / 10
+		digit = digit % 10
+		res[i + 1] = strconv.Itoa(digit)
 	}
 	if temp == 1 {
-		res = strconv.Itoa(temp) + res
+		res[0] = "1"
+	} else {
+		res = res[1:]
 	}
-	return res
+	return strings.Join(res, "")
 }
 
 func Subtract(val1 []int, val2 []int) string {
@@ -51,32 +57,27 @@ func Subtract(val1 []int, val2 []int) string {
 
 func PaddingZero(val []int, digit int) []int {
 	zeros := make([]int, digit-len(val))
-	val = append(zeros, val...)
-	return val
+	return append(zeros, val...)
 }
 
 // Compare if val1 > val2
-func CompareValue(val1 []int, val2 []int) string {
+func CompareValue(val1 []int, val2 []int) Outcome {
 	for i := range val1 {
 		if val1[i] > val2[i] {
-			return "True"
+			return Larger
 		} else if val1[i] < val2[i] {
-			return "False"
+			return Less
 		}
 	}
-	return "Same"
+	return Same
 }
 
 // Remove the first few zero from string except only one zero
 func RemoveZero(str string) string {
-	strTrim := ""
-	for {
-		strTrim = strings.TrimPrefix(str, "0")
-		if str == strTrim || len(str) == 1 {
-			return str
-		}
-		str = strTrim
-	}
+	idx := 0
+	for ; idx < len(str) && string(str[idx]) == "0"; idx++ {}
+
+	return str[idx:]
 }
 
 // Get sign and value
@@ -97,6 +98,7 @@ func StrToNumber(str string) Number {
 	sign, numStr := ExtractSignAndNum(str)
 	number.Sign = sign
 	number.Value = make([]int, 0, len(numStr))
+
 	for _, val := range strings.Split(RemoveZero(numStr), "") {
 		valInt, _ := strconv.Atoi(val)
 		number.Value = append(number.Value, valInt)
@@ -125,10 +127,10 @@ func Adder(num1 string, num2 string) string {
 	// If signs are different, use large value to subtract small value
 	// If value of negative input is larger, add "-" to the result
 	// If values are the same, return 0
-	if CompareValue(number1.Value, number2.Value) == "True" {
+	if CompareValue(number1.Value, number2.Value) == Larger {
 		res := RemoveZero(Subtract(number1.Value, number2.Value))
 		return strings.TrimPrefix(number1.Sign + res, "+")
-	} else if CompareValue(number1.Value, number2.Value) == "False" {
+	} else if CompareValue(number1.Value, number2.Value) == Less {
 		res := RemoveZero(Subtract(number2.Value, number1.Value))
 		return strings.TrimPrefix(number2.Sign + res, "+")
 	} else {
