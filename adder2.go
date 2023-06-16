@@ -40,6 +40,12 @@ func Subtract(val1 []int, val2 []int) string {
 			res[i] = val1[i] - val2[i]
 		}
 	}
+	// Ex: (XXX is the last output)
+	// res						-> [3]{1,2,3}
+	// fmt.Sprint(res)			-> "[1 2 3]"
+	// strings.Fields(XXX)		-> [5]string{"[", "1", "2", "3", "]"}
+	// strings.Join(XXX, "")	-> "[123]"
+	// strings.Trim(XXX, "[]")	-> "123"
 	return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(res)), ""), "[]")
 }
 
@@ -49,6 +55,7 @@ func PaddingZero(val []int, digit int) []int {
 	return val
 }
 
+// Compare if val1 > val2
 func CompareValue(val1 []int, val2 []int) string {
 	for i := range val1 {
 		if val1[i] > val2[i] {
@@ -60,6 +67,7 @@ func CompareValue(val1 []int, val2 []int) string {
 	return "Same"
 }
 
+// Remove the first few zero from string except only one zero
 func RemoveZero(str string) string {
 	strTrim := ""
 	for {
@@ -71,6 +79,7 @@ func RemoveZero(str string) string {
 	}
 }
 
+// Get sign and value
 func ExtractSignAndNum(str string) (string, string) {
 	switch string(str[0]) {
 	case "-":
@@ -82,6 +91,7 @@ func ExtractSignAndNum(str string) (string, string) {
 	}
 }
 
+// Parse input string to number structure
 func StrToNumber(str string) Number {
 	var number = Number{}
 	sign, numStr := ExtractSignAndNum(str)
@@ -94,19 +104,27 @@ func StrToNumber(str string) Number {
 	return number
 }
 
+// Input two strings of number, return the result of adding
 func Adder(num1 string, num2 string) string {
 	number1 := StrToNumber(num1)
 	number2 := StrToNumber(num2)
 
+	// pad zero depends on the larger num
+	// Ex: [2]int{1,2}, [3]int{1,2,3} -> [3]{0,1,2}, [3]int{1,2,3}
 	if len(number1.Value) > len(number2.Value) {
 		number2.Value = PaddingZero(number2.Value, len(number1.Value))
 	} else if len(number1.Value) < len(number2.Value) {
 		number1.Value = PaddingZero(number1.Value, len(number2.Value))
 	}
 
+	// If signs are the same, do add() and add sign on the result
 	if number1.Sign == number2.Sign {
 		return strings.TrimPrefix(number1.Sign + RemoveZero(Add(number1.Value, number2.Value)), "+")
 	}
+
+	// If signs are different, use large value to subtract small value
+	// If value of negative input is larger, add "-" to the result
+	// If values are the same, return 0
 	if CompareValue(number1.Value, number2.Value) == "True" {
 		res := RemoveZero(Subtract(number1.Value, number2.Value))
 		return strings.TrimPrefix(number1.Sign + res, "+")
